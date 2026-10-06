@@ -10,7 +10,9 @@ Bot de Telegram que avisa cuando se va la electricidad en casa y cuando vuelve. 
 - Reintenta el envío hasta 12 veces (cada 10 s) y verifica `"ok":true` en la respuesta de Telegram.
 - Si el teléfono o el script se reinician durante un corte, lo avisa y conserva el inicio real del corte.
 - Alerta de batería baja (15 % por defecto), una sola vez por corte.
-- Comandos del bot: `/estado` y `/ayuda`. Solo responde a tu chat.
+- Varios usuarios: el chat configurado en `luz-setup.sh` es el **administrador**; puede autorizar a más personas (ver "Varios usuarios").
+- Historial de cortes (`/historial`) con fecha, duración y tiempo total acumulado.
+- Comandos del bot: `/estado`, `/historial` y `/ayuda`. Solo responde a chats autorizados.
 - Aviso de pérdida de internet: "🌐 Estuve sin internet X min".
 - Heartbeat opcional con [Healthchecks.io](https://healthchecks.io) para enterarte si el teléfono se apaga del todo.
 
@@ -70,6 +72,52 @@ bash ~/luz-ctl.sh reiniciar
 
 Log en `~/luz.log` (rota a `luz.log.1` al pasar de 256 KB).
 
+## Varios usuarios
+
+Requiere `COMANDOS=1` (por defecto). Cualquier persona puede usar el bot, pero solo si el administrador la aprueba:
+
+1. La persona abre tu bot en Telegram y pulsa **Iniciar** (`/start`). Recibe su ID y el aviso de que su solicitud fue enviada.
+2. Al administrador le llega "🔔 Solicitud de acceso" con nombre e ID.
+3. El administrador responde `/agregar ID`. La persona recibe confirmación y el estado actual.
+
+Comandos solo del administrador:
+
+| Comando | Qué hace |
+|---|---|
+| `/pausa [duración]` | Pausa los avisos de cortes nuevos (ver "Pausa") |
+| `/reanudar` | Quita la pausa antes de tiempo |
+| `/usuarios` | Lista autorizados y solicitudes pendientes |
+| `/agregar ID` (o `/aprobar ID`) | Autoriza un chat. También sirve para grupos (ID negativo): agrega el bot al grupo, pulsa `/start` allí y aprueba |
+| `/quitar ID` | Revoca el acceso |
+
+Qué recibe cada quien:
+
+- **Todos los autorizados:** corte, regreso de la luz, batería baja, reinicio durante un corte, y los comandos `/estado`, `/historial`, `/ayuda`.
+- **Solo el administrador:** aviso de arranque, pérdida de internet y fallos de lectura de batería (avisos técnicos del teléfono).
+
+Los chats se guardan en `~/.luz.chats` y las solicitudes en `~/.luz.pend`. Si alguien bloqueó el bot, el envío a ese chat se descarta al instante sin retrasar a los demás. Los avisos se envían en paralelo.
+
+## Pausa
+
+Para desenchufar el teléfono a propósito (mover cosas, cambiar de cargador, mantenimiento) sin que avise a todos de un corte falso. Solo el administrador.
+
+- `/pausa 30` (minutos), `/pausa 2h`, `/pausa 1d`. Sin duración: 60 min. Máximo 24 h.
+- `/reanudar` la quita antes de tiempo.
+- Durante la pausa **no se inician cortes nuevos** ni se registran en el historial.
+- Al vencer te llega "▶️ La pausa terminó". Si el cargador sigue desconectado en ese momento, se avisa el corte como siempre.
+- Si ya había un corte en curso al pausar, sigue vigilándose y avisa cuando vuelva la luz.
+- `/estado` indica "⏸️ Monitor en pausa hasta …" mientras dure.
+- La pausa se guarda en `~/.luz.pausa` y sobrevive a reinicios del script. Los demás avisos (internet, heartbeat) no se pausan.
+- Una pausa no tapa un corte real: si se va la luz de verdad durante la pausa, no avisará hasta que termine. Usa pausas cortas y `/reanudar` al terminar.
+
+## Protector de la casa
+
+Si un protector de voltaje corta toda la casa unos minutos tras una fluctuación, el bot avisa el corte igual (la casa sí está sin luz). Al volver, un corte de hasta `PROTECTOR_MAX` segundos (420 = 7 min) se etiqueta "🛡️ probable reinicio del protector por una fluctuación", tanto en el aviso de regreso como en `/historial`, que además cuenta cuántos fueron así. Ajusta `PROTECTOR_MAX` según lo que tarde tu protector; `0` desactiva la etiqueta.
+
+## Historial
+
+Cada corte terminado se guarda en `~/.luz.hist` (inicio y fin). `/historial` muestra los últimos 10 y el tiempo total sin luz registrado. Se conservan los últimos 200 cortes.
+
 ## Configuración
 
 Las variables están al inicio de `luz-monitor.sh`:
@@ -80,7 +128,10 @@ Las variables están al inicio de `luz-monitor.sh`:
 | `ANTIREBOTE` | 10 | Segundos de confirmación antes de avisar |
 | `BATERIA_BAJA` | 15 | % para la alerta de batería baja (0 = desactivada) |
 | `REINTENTOS` / `ESPERA_REINTENTO` | 12 / 10 | Reintentos de envío y espera entre ellos |
-| `COMANDOS` | 1 | 1 = el bot responde `/estado` y `/ayuda` |
+| `COMANDOS` | 1 | 1 = el bot responde comandos y solicitudes de acceso |
+| `HIST_MAX` / `HIST_MOSTRAR` | 200 / 10 | Cortes guardados / cortes que muestra `/historial` |
+| `PROTECTOR_MAX` | 420 | Segundos: un corte hasta esta duración se etiqueta "probable protector" (0 = desactivado) |
+| `PAUSA_DEFECTO` / `PAUSA_MAX` | 60 / 1440 | Minutos de `/pausa` sin duración / máximo permitido |
 | `POLL_TIMEOUT` | 50 | Segundos de long-polling de `getUpdates` |
 | `CHEQUEO_INTERNET` | 60 | Segundos entre chequeos de internet (0 = desactivado) |
 | `INTERNET_FALLOS` | 3 | Fallos seguidos para dar internet por caído |
