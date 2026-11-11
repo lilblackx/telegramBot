@@ -46,6 +46,16 @@ EOF
     printf '#!/data/data/com.termux/files/usr/bin/bash\nluz\n' > "$HOME/.shortcuts/luz-encender.sh"
     chmod +x "$HOME/.shortcuts/luz-encender.sh"
 
+    # Versión en segundo plano (sin ventana): funciona con Termux cerrado y sin permiso de superposición.
+    # Muestra un aviso en pantalla con el resultado.
+    mkdir -p "$HOME/.shortcuts/tasks"
+    cat > "$HOME/.shortcuts/tasks/luz-encender-fondo.sh" <<'EOF'
+#!/data/data/com.termux/files/usr/bin/bash
+msg=$(bash "$HOME/luz-ctl.sh" iniciar 2>&1 | head -n 1)
+command -v termux-toast >/dev/null && termux-toast -g middle "Monitor de luz: $msg"
+EOF
+    chmod +x "$HOME/.shortcuts/tasks/luz-encender-fondo.sh"
+
     # Vigilante: cada 5 min intenta iniciar el monitor; si ya corre, no hace nada
     if ! command -v crond >/dev/null; then pkg install -y cronie || { echo "No se pudo instalar cronie."; return 1; }; fi
     ( crontab -l 2>/dev/null | grep -v 'luz-ctl.sh iniciar'
