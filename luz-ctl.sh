@@ -28,6 +28,8 @@ detener() {
 
 iniciar() {
     local p
+    # Mantiene vivo el acceso SSH desde la PC (solo si está instalado); cron pasa por aquí cada 5 min
+    command -v sshd >/dev/null && ! pgrep -x sshd >/dev/null && sshd
     if p=$(pid_activo); then echo "Ya está corriendo (PID $p)."; return 0; fi
     command -v termux-wake-lock >/dev/null && termux-wake-lock
     nohup bash "$MONITOR" >> "$HOME/luz.out" 2>&1 &
