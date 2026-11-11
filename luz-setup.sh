@@ -41,13 +41,10 @@ bash "$HOME/luz-ctl.sh" estado
 EOF
     chmod +x "$PREFIX/bin/luz"
 
-    # Atajo para Termux:Widget (la app se instala aparte desde F-Droid)
-    mkdir -p "$HOME/.shortcuts"
-    printf '#!/data/data/com.termux/files/usr/bin/bash\nluz\n' > "$HOME/.shortcuts/luz-encender.sh"
-    chmod +x "$HOME/.shortcuts/luz-encender.sh"
-
-    # Versión en segundo plano (sin ventana): funciona con Termux cerrado y sin permiso de superposición.
-    # Muestra un aviso en pantalla con el resultado.
+    # Atajo para Termux:Widget (la app se instala aparte desde F-Droid).
+    # Corre en segundo plano (sin ventana): funciona con Termux cerrado y sin permiso de
+    # superposición. Muestra un aviso en pantalla con el resultado.
+    rm -f "$HOME/.shortcuts/luz-encender.sh"   # versión anterior con ventana: fallaba con Termux cerrado
     mkdir -p "$HOME/.shortcuts/tasks"
     cat > "$HOME/.shortcuts/tasks/luz-encender-fondo.sh" <<'EOF'
 #!/data/data/com.termux/files/usr/bin/bash

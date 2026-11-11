@@ -75,7 +75,7 @@ bash ~/luz-ctl.sh reiniciar
 `bash ~/luz-setup.sh` instala al final (o solo con `bash ~/luz-setup.sh extras`):
 
 - Comando `luz`: enciende el monitor si está apagado y muestra el estado. También `luz log`, `luz detener`, `luz reiniciar`.
-- Atajo `~/.shortcuts/luz-encender.sh` para el widget de **Termux:Widget** (app aparte, de F-Droid). Mantén pulsada la pantalla de inicio, Widgets, Termux:Widget.
+- Atajo `~/.shortcuts/tasks/luz-encender-fondo.sh` para el widget de **Termux:Widget** (app aparte, de F-Droid). Mantén pulsada la pantalla de inicio, Widgets, Termux:Widget. Corre en segundo plano, sirve con Termux cerrado y avisa con un toast.
 - Vigilante: `cron` (paquete `cronie`) ejecuta `luz-ctl.sh iniciar` cada 5 min, así que si Android mata el monitor, vuelve solo. `luz-boot.sh` arranca `crond` al encender el teléfono.
 
 Log en `~/luz.log` (rota a `luz.log.1` al pasar de 256 KB).
