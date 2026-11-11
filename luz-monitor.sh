@@ -49,8 +49,8 @@ log() {
     return 0
 }
 
-hora_de()  { date -d "@$1" '+%d/%m/%Y %H:%M:%S'; }   # epoch -> fecha legible
-ahora()    { date '+%d/%m/%Y %H:%M:%S'; }
+hora_de()  { date -d "@$1" '+%d/%m/%Y %I:%M:%S %p'; }   # epoch -> fecha legible (12 h)
+ahora()    { date '+%d/%m/%Y %I:%M:%S %p'; }
 duracion() {                                          # segundos -> "H h M min S s" (sin horas si es < 1 h)
     local s=$1
     [ "$s" -lt 0 ] && s=0
